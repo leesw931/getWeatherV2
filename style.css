@@ -1,4 +1,3 @@
-/* 기본 설정 */
 body, html {
   margin: 0;
   padding: 0;
@@ -54,40 +53,24 @@ header {
 .weather-info {
   position: relative;
   z-index: 1;
-  text-align: center;
-  padding-top: 80px;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  justify-content: space-between;
   height: 100%;
+  padding: 100px 20px 120px 20px;
   box-sizing: border-box;
-}
-
-#backgroundScroller {
-  display: flex;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  width: 100vw;
-  height: 100vh;
-  position: absolute;
-  top: 0; left: 0;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-}
-
-.background-slide {
-  min-width: 100vw;
-  height: 100vh;
-  background-size: cover;
-  background-position: center;
-  scroll-snap-align: start;
-  flex-shrink: 0;
 }
 
 .top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+}
+
+.temp-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .temp {
@@ -109,17 +92,38 @@ header {
 .summary {
   font-size: 1.2rem;
   font-weight: 500;
+  margin: 20px 0;
 }
 
 .bottom {
   display: flex;
   justify-content: space-between;
-  padding: 0 1rem;
   font-size: 1rem;
 }
 
 .minmax, .precip {
   flex: 1;
+}
+
+#backgroundScroller {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  top: 0; left: 0;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.background-slide {
+  min-width: 100vw;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  scroll-snap-align: start;
+  flex-shrink: 0;
 }
 
 .tab-buttons {
