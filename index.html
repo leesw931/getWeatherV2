@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>우리가족 날씨앱</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 </head>
 <body>
   <script>
@@ -32,10 +31,13 @@
     </div>
 
     <section id="nowSection">
-      <div class="swiper">
-        <div class="swiper-wrapper" id="forecastSlides">
-          <!-- 시간별 날씨 슬라이드가 여기에 들어감 -->
-        </div>
+      <div id="backgroundScroller">
+        <div id="backgroundImages"></div>
+      </div>
+      <div id="fixedWeatherInfo">
+        <p id="weatherTime"></p>
+        <img id="weatherIcon" class="weather-icon" />
+        <p id="weatherTemp"></p>
       </div>
     </section>
 
@@ -46,14 +48,20 @@
     </section>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
   <script>
     const regionSelect = document.getElementById("regionSelect");
-    const forecastSlides = document.getElementById("forecastSlides");
     const nowTab = document.getElementById("nowTab");
     const days10Tab = document.getElementById("days10Tab");
     const nowSection = document.getElementById("nowSection");
     const days10Section = document.getElementById("days10Section");
+
+    const backgroundImages = document.getElementById("backgroundImages");
+    const weatherTime = document.getElementById("weatherTime");
+    const weatherIcon = document.getElementById("weatherIcon");
+    const weatherTemp = document.getElementById("weatherTemp");
+
+    let currentIndex = 0;
+    let forecastData = [];
 
     nowTab.addEventListener("click", () => {
       nowTab.classList.add("active");
@@ -76,41 +84,51 @@
       const url = `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat}&lon=${lon}`;
 
       try {
-        const res = await fetch(url); // ✅ User-Agent 제거함
+        const res = await fetch(url);
         const data = await res.json();
-        renderForecast(data.properties.timeseries);
+        forecastData = data.properties.timeseries.slice(0, 6);
+        renderBackgrounds(forecastData);
+        updateWeatherDisplay(0);
       } catch (err) {
         alert("날씨 정보를 불러오지 못했습니다: " + err.message);
         console.error(err);
       }
     }
 
-    function renderForecast(timeseries) {
-      forecastSlides.innerHTML = "";
-      const nextHours = timeseries.slice(0, 6); // 첫 6시간만 표시
-
-      nextHours.forEach(entry => {
-        const time = new Date(entry.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const temp = entry.data.instant.details.air_temperature;
+    function renderBackgrounds(timeseries) {
+      backgroundImages.innerHTML = "";
+      timeseries.forEach(entry => {
         const symbol = entry.data.next_1_hours?.summary?.symbol_code || "clearsky_day";
-
-        const slide = document.createElement("div");
-        slide.className = "swiper-slide";
-        slide.innerHTML = `
-          <div class="slide-content">
-            <p><strong>${time}</strong></p>
-            <img src="./assets/icons/${symbol}.svg" alt="${symbol}" class="weather-icon"/>
-            <p>${temp}℃</p>
-          </div>
-        `;
-        forecastSlides.appendChild(slide);
-      });
-
-      new Swiper(".swiper", {
-        slidesPerView: 2.5,
-        spaceBetween: 10,
+        const bg = document.createElement("div");
+        bg.className = "bg-slide";
+        bg.style.backgroundImage = `url('./assets/backgrounds/${symbol}.jpg')`;
+        backgroundImages.appendChild(bg);
       });
     }
+
+    function updateWeatherDisplay(index) {
+      if (!forecastData[index]) return;
+      const entry = forecastData[index];
+      const time = new Date(entry.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const temp = entry.data.instant.details.air_temperature;
+      const symbol = entry.data.next_1_hours?.summary?.symbol_code || "clearsky_day";
+
+      weatherTime.textContent = time;
+      weatherTemp.textContent = `${temp}℃`;
+      weatherIcon.src = `./assets/icons/${symbol}.svg`;
+      weatherIcon.alt = symbol;
+    }
+
+    // 스크롤 이벤트 감지해서 index 변경
+    document.getElementById("backgroundScroller").addEventListener("scroll", (e) => {
+      const scrollX = e.target.scrollLeft;
+      const width = e.target.clientWidth;
+      const newIndex = Math.round(scrollX / width);
+      if (newIndex !== currentIndex) {
+        currentIndex = newIndex;
+        updateWeatherDisplay(currentIndex);
+      }
+    });
 
     // 초기 호출
     fetchForecast();
