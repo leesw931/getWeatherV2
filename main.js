@@ -55,10 +55,13 @@ async function fetchForecast() {
     const forecastJson = await forecastRes.json();
     const sunriseJson = await sunriseRes.json();
 
-    forecastData = forecastJson.properties.timeseries.map(item => ({
-      ...item,
-      localTime: new Date(item.time)
-    }));
+    const now = new Date();
+    forecastData = forecastJson.properties.timeseries
+      .map(item => ({ ...item, localTime: new Date(item.time) }))
+      .filter(item => {
+        const diffHours = (item.localTime - now) / (1000 * 60 * 60);
+        return diffHours >= 0 && diffHours <= 36;
+      });
 
     const sunInfo = sunriseJson.location.time[0];
     sunrise = new Date(sunInfo.sunrise.time);
