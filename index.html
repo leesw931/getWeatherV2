@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>우리가족 날씨앱</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+</head>
+<body>
+  <script>
+    const password = prompt("접속 비밀번호를 입력하세요");
+    if (password !== "우리집비번") {
+      document.body.innerHTML = "<h2 style='text-align:center; color:red;'>잘못된 접근입니다.</h2>";
+      throw new Error("접근 차단");
+    }
+  </script>
+
+  <div class="container">
+    <header>
+      <h1>🌤 우리가족 날씨</h1>
+      <select id="regionSelect">
+        <option value="37.3223,127.0945">수지</option>
+        <option value="37.2856,127.0138">마산동</option>
+        <option value="37.3450,126.7351">만수리</option>
+      </select>
+    </header>
+
+    <div class="tab-buttons">
+      <button id="nowTab" class="active">Now</button>
+      <button id="days10Tab">10 Days</button>
+    </div>
+
+    <section id="nowSection">
+      <div class="swiper">
+        <div class="swiper-wrapper" id="forecastSlides">
+          <!-- 시간별 날씨 슬라이드가 여기에 들어감 -->
+        </div>
+      </div>
+    </section>
+
+    <section id="days10Section" style="display: none;">
+      <div id="days10Container">
+        <!-- 중기예보 카드 형식 들어갈 자리 -->
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script>
+    const regionSelect = document.getElementById("regionSelect");
+    const forecastSlides = document.getElementById("forecastSlides");
+    const nowTab = document.getElementById("nowTab");
+    const days10Tab = document.getElementById("days10Tab");
+    const nowSection = document.getElementById("nowSection");
+    const days10Section = document.getElementById("days10Section");
+
+    nowTab.addEventListener("click", () => {
+      nowTab.classList.add("active");
+      days10Tab.classList.remove("active");
+      nowSection.style.display = "block";
+      days10Section.style.display = "none";
+    });
+
+    days10Tab.addEventListener("click", () => {
+      days10Tab.classList.add("active");
+      nowTab.classList.remove("active");
+      days10Section.style.display = "block";
+      nowSection.style.display = "none";
+    });
+
+    regionSelect.addEventListener("change", fetchForecast);
+
+    async function fetchForecast() {
+      const [lat, lon] = regionSelect.value.split(",");
+      const url = `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat}&lon=${lon}`;
+
+      try {
+        const res = await fetch(url, {
+          headers: {
+            "User-Agent": "my-family-weather/1.0 ta-da@example.com"
+          }
+        });
+        const data = await res.json();
+        renderForecast(data.properties.timeseries);
+      } catch (err) {
+        alert("날씨 정보를 불러오지 못했습니다.");
+        console.error(err);
+      }
+    }
+
+    function renderForecast(timeseries) {
+      forecastSlides.innerHTML = "";
+      const nextHours = timeseries.slice(0, 6); // 첫 6시간만 표시
+
+      nextHours.forEach(entry => {
+        const time = new Date(entry.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const temp = entry.data.instant.details.air_temperature;
+        const symbol = entry.data.next_1_hours?.summary?.symbol_code || "clearsky_day";
+
+        const slide = document.createElement("div");
+        slide.className = "swiper-slide";
+        slide.innerHTML = `
+          <div class="slide-content">
+            <p><strong>${time}</strong></p>
+            <img src="./assets/icons/${symbol}.svg" alt="${symbol}" class="weather-icon"/>
+            <p>${temp}℃</p>
+          </div>
+        `;
+        forecastSlides.appendChild(slide);
+      });
+
+      new Swiper(".swiper", {
+        slidesPerView: 2.5,
+        spaceBetween: 10,
+      });
+    }
+
+    // 초기 호출
+    fetchForecast();
+  </script>
+</body>
+</html>
