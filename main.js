@@ -27,7 +27,10 @@ const summaryMap = {
 let forecastData = [];
 let currentIndex = 0;
 
-regionSelect.addEventListener("change", fetchForecast);
+regionSelect.addEventListener("change", () => {
+  fetchForecast();
+  backgroundScroller.scrollTo({ left: 0, behavior: "auto" }); // 지역 변경 시 스크롤 초기화
+});
 
 async function fetchForecast() {
   const [lat, lon] = regionSelect.value.split(",");
@@ -36,7 +39,14 @@ async function fetchForecast() {
   try {
     const res = await fetch(url);
     const data = await res.json();
-    forecastData = data.properties.timeseries.slice(0, 6);
+
+    // 오늘 날짜 기준 24시까지 필터링
+    const now = new Date();
+    const endOfToday = new Date(now);
+    endOfToday.setHours(23, 59, 59, 999);
+
+    forecastData = data.properties.timeseries.filter(item => new Date(item.time) <= endOfToday);
+
     renderSlides(forecastData);
     updateWeather(0);
   } catch (e) {
