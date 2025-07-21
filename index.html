@@ -5,12 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>우리가족 날씨앱</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 </head>
 <body>
   <script>
-    const password = prompt("접속 비밀번호를 입력하세요");
-    if (password !== "우리집비번") {
+    const password = '0831';
+    if (password !== "0831") {
       document.body.innerHTML = "<h2 style='text-align:center; color:red;'>잘못된 접근입니다.</h2>";
       throw new Error("접근 차단");
     }
@@ -18,42 +17,84 @@
 
   <div class="container">
     <header>
-      <h1>🌤 우리가족 날씨</h1>
+      <h1 id="location">🌤 우리가족 날씨</h1>
       <select id="regionSelect">
-        <option value="37.3223,127.0945">수지</option>
-        <option value="37.2856,127.0138">마산동</option>
-        <option value="37.3450,126.7351">만수리</option>
+        <option value="34.4465,126.6706">만수리</option>
+        <option value="37.3225,127.0947">수지</option>
+        <option value="37.6408,126.6444">마산동</option>
       </select>
     </header>
+
+    <main id="nowSection" class="weather-display">
+      <div id="background" class="weather-background"></div>
+      <div class="weather-info">
+        <div class="top">
+          <div>
+            <div id="currentTime" class="time-text">Today 00:00</div>
+            <div id="temperature" class="temp">--°</div>
+            <div id="feelsLike" class="feels">Feels like --°</div>
+          </div>
+          <div class="wind-info">
+            <div id="windSpeed">--</div>
+            <div id="windDirection">Wind dir</div>
+          </div>
+        </div>
+
+        <div id="summaryText" class="summary">날씨 설명 문구</div>
+
+        <div class="bottom">
+          <div class="minmax">
+            <div>↑ <span id="tempMax">--</span>° ↓ <span id="tempMin">--</span>°</div>
+          </div>
+          <div class="precip">
+            <div>No precipitation</div>
+            <div><span id="precipAmount">0</span> mm</div>
+          </div>
+        </div>
+      </div>
+    </main>
 
     <div class="tab-buttons">
       <button id="nowTab" class="active">Now</button>
       <button id="days10Tab">10 Days</button>
     </div>
 
-    <section id="nowSection">
-      <div class="swiper">
-        <div class="swiper-wrapper" id="forecastSlides">
-          <!-- 시간별 날씨 슬라이드가 여기에 들어감 -->
-        </div>
-      </div>
-    </section>
-
     <section id="days10Section" style="display: none;">
-      <div id="days10Container">
-        <!-- 중기예보 카드 형식 들어갈 자리 -->
-      </div>
+      <div id="days10Container"></div>
     </section>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
   <script>
     const regionSelect = document.getElementById("regionSelect");
-    const forecastSlides = document.getElementById("forecastSlides");
     const nowTab = document.getElementById("nowTab");
     const days10Tab = document.getElementById("days10Tab");
     const nowSection = document.getElementById("nowSection");
     const days10Section = document.getElementById("days10Section");
+
+    const currentTime = document.getElementById("currentTime");
+    const temperature = document.getElementById("temperature");
+    const feelsLike = document.getElementById("feelsLike");
+    const windSpeed = document.getElementById("windSpeed");
+    const windDirection = document.getElementById("windDirection");
+    const summaryText = document.getElementById("summaryText");
+    const tempMin = document.getElementById("tempMin");
+    const tempMax = document.getElementById("tempMax");
+    const precipAmount = document.getElementById("precipAmount");
+    const background = document.getElementById("background");
+
+    const summaryMap = {
+      clearsky_day: "Clear and sunny",
+      clearsky_night: "Clear night",
+      partlycloudy_day: "Partly cloudy",
+      partlycloudy_night: "Partly cloudy night",
+      cloudy: "Cloudy",
+      lightrain: "Light rain",
+      rain: "Rain",
+      heavyrain: "Heavy rain",
+      lightsnow: "Light snow",
+      snow: "Snow",
+      fog: "Foggy"
+    };
 
     nowTab.addEventListener("click", () => {
       nowTab.classList.add("active");
@@ -76,47 +117,49 @@
       const url = `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat}&lon=${lon}`;
 
       try {
-        const res = await fetch(url, {
-          headers: {
-            "User-Agent": "my-family-weather/1.0 ta-da@example.com"
-          }
-        });
+        const res = await fetch(url);
         const data = await res.json();
-        renderForecast(data.properties.timeseries);
+        const timeseries = data.properties.timeseries.slice(0, 6);
+        updateWeatherDisplay(timeseries);
       } catch (err) {
-        alert("날씨 정보를 불러오지 못했습니다.");
+        alert("날씨 정보를 불러오지 못했습니다: " + err.message);
         console.error(err);
       }
     }
 
-    function renderForecast(timeseries) {
-      forecastSlides.innerHTML = "";
-      const nextHours = timeseries.slice(0, 6); // 첫 6시간만 표시
+    function updateWeatherDisplay(data) {
+      const first = data[0];
+      const time = new Date(first.time);
+      const hour = time.getHours().toString().padStart(2, '0');
+      const minute = time.getMinutes().toString().padStart(2, '0');
 
-      nextHours.forEach(entry => {
-        const time = new Date(entry.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const temp = entry.data.instant.details.air_temperature;
-        const symbol = entry.data.next_1_hours?.summary?.symbol_code || "clearsky_day";
+      currentTime.textContent = `Today ${hour}:${minute}`;
 
-        const slide = document.createElement("div");
-        slide.className = "swiper-slide";
-        slide.innerHTML = `
-          <div class="slide-content">
-            <p><strong>${time}</strong></p>
-            <img src="./assets/icons/${symbol}.svg" alt="${symbol}" class="weather-icon"/>
-            <p>${temp}℃</p>
-          </div>
-        `;
-        forecastSlides.appendChild(slide);
-      });
+      const temp = first.data.instant.details.air_temperature;
+      temperature.textContent = `${Math.round(temp)}°`;
+      feelsLike.textContent = `Feels like ${Math.round(temp)}°`; // 추후 apparent_temperature 들어오면 교체
 
-      new Swiper(".swiper", {
-        slidesPerView: 2.5,
-        spaceBetween: 10,
-      });
+      windSpeed.textContent = `${first.data.instant.details.wind_speed} m/s`;
+      windDirection.textContent = `from ${windDirectionText(first.data.instant.details.wind_from_direction)}`;
+
+      const symbol = first.data.next_1_hours?.summary?.symbol_code || "clearsky_day";
+      summaryText.textContent = summaryMap[symbol] || symbol;
+      background.style.backgroundImage = `url('./assets/backgrounds/${symbol}.jpg')`;
+
+      const precip = first.data.next_1_hours?.details?.precipitation_amount || 0;
+      precipAmount.textContent = precip;
+
+      // 최고/최저 계산
+      const temps = data.map(d => d.data.instant.details.air_temperature);
+      tempMin.textContent = Math.min(...temps);
+      tempMax.textContent = Math.max(...temps);
     }
 
-    // 초기 호출
+    function windDirectionText(deg) {
+      const dirs = ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'];
+      return dirs[Math.round(deg / 45) % 8];
+    }
+
     fetchForecast();
   </script>
 </body>
