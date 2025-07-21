@@ -48,12 +48,13 @@ async function fetchForecast() {
   //const sunriseUrl = `https://api.met.no/weatherapi/sunrise/2.0.json?lat=${lat}&lon=${lon}&date=${today}&offset=+09:00`;
 
   try {
-    const [forecastRes, sunriseRes] = await Promise.all([
+    const [forecastRes] = await Promise.all([
+      //const [forecastRes, sunriseRes] = await Promise.all([
       fetch(forecastUrl),
       //fetch(sunriseUrl)
     ]);
     const forecastJson = await forecastRes.json();
-    const sunriseJson = await sunriseRes.json();
+    //const sunriseJson = await sunriseRes.json();
 
     const now = new Date();
     forecastData = forecastJson.properties.timeseries
@@ -63,9 +64,9 @@ async function fetchForecast() {
         return diffHours >= 0 && diffHours <= 36;
       });
 
-    const sunInfo = sunriseJson.location.time[0];
-    sunrise = new Date(sunInfo.sunrise.time);
-    sunset = new Date(sunInfo.sunset.time);
+    //const sunInfo = sunriseJson.location.time[0];
+    //sunrise = new Date(sunInfo.sunrise.time);
+    //sunset = new Date(sunInfo.sunset.time);
 
     renderSlides(forecastData);
     updateWeather(0);
