@@ -26,7 +26,7 @@
     </header>
 
     <main id="nowSection" class="weather-display">
-      <div id="background" class="weather-background"></div>
+      <div id="backgroundScroller"></div>
       <div class="weather-info">
         <div class="top">
           <div>
@@ -71,6 +71,7 @@
     const nowSection = document.getElementById("nowSection");
     const days10Section = document.getElementById("days10Section");
 
+    const backgroundScroller = document.getElementById("backgroundScroller");
     const currentTime = document.getElementById("currentTime");
     const temperature = document.getElementById("temperature");
     const feelsLike = document.getElementById("feelsLike");
@@ -80,7 +81,6 @@
     const tempMin = document.getElementById("tempMin");
     const tempMax = document.getElementById("tempMax");
     const precipAmount = document.getElementById("precipAmount");
-    const background = document.getElementById("background");
 
     const summaryMap = {
       clearsky_day: "Clear and sunny",
@@ -95,6 +95,9 @@
       snow: "Snow",
       fog: "Foggy"
     };
+
+    let currentIndex = 0;
+    let forecastData = [];
 
     nowTab.addEventListener("click", () => {
       nowTab.classList.add("active");
@@ -119,38 +122,48 @@
       try {
         const res = await fetch(url);
         const data = await res.json();
-        const timeseries = data.properties.timeseries.slice(0, 6);
-        updateWeatherDisplay(timeseries);
+        forecastData = data.properties.timeseries.slice(0, 6);
+        renderBackgroundSlides(forecastData);
+        updateWeatherDisplay(0);
       } catch (err) {
         alert("날씨 정보를 불러오지 못했습니다: " + err.message);
         console.error(err);
       }
     }
 
-    function updateWeatherDisplay(data) {
-      const first = data[0];
-      const time = new Date(first.time);
+    function renderBackgroundSlides(timeseries) {
+      backgroundScroller.innerHTML = "";
+      timeseries.forEach(entry => {
+        const symbol = entry.data.next_1_hours?.summary?.symbol_code || "clearsky_day";
+        const bg = document.createElement("div");
+        bg.className = "background-slide";
+        bg.style.backgroundImage = `url('./assets/backgrounds/${symbol}.jpg')`;
+        backgroundScroller.appendChild(bg);
+      });
+    }
+
+    function updateWeatherDisplay(index) {
+      if (!forecastData[index]) return;
+      const entry = forecastData[index];
+      const time = new Date(entry.time);
       const hour = time.getHours().toString().padStart(2, '0');
       const minute = time.getMinutes().toString().padStart(2, '0');
-
       currentTime.textContent = `Today ${hour}:${minute}`;
 
-      const temp = first.data.instant.details.air_temperature;
+      const temp = entry.data.instant.details.air_temperature;
       temperature.textContent = `${Math.round(temp)}°`;
-      feelsLike.textContent = `Feels like ${Math.round(temp)}°`; // 추후 apparent_temperature 들어오면 교체
+      feelsLike.textContent = `Feels like ${Math.round(temp)}°`;
 
-      windSpeed.textContent = `${first.data.instant.details.wind_speed} m/s`;
-      windDirection.textContent = `from ${windDirectionText(first.data.instant.details.wind_from_direction)}`;
+      windSpeed.textContent = `${entry.data.instant.details.wind_speed} m/s`;
+      windDirection.textContent = `from ${windDirectionText(entry.data.instant.details.wind_from_direction)}`;
 
-      const symbol = first.data.next_1_hours?.summary?.symbol_code || "clearsky_day";
+      const symbol = entry.data.next_1_hours?.summary?.symbol_code || "clearsky_day";
       summaryText.textContent = summaryMap[symbol] || symbol;
-      background.style.backgroundImage = `url('./assets/backgrounds/${symbol}.jpg')`;
 
-      const precip = first.data.next_1_hours?.details?.precipitation_amount || 0;
+      const precip = entry.data.next_1_hours?.details?.precipitation_amount || 0;
       precipAmount.textContent = precip;
 
-      // 최고/최저 계산
-      const temps = data.map(d => d.data.instant.details.air_temperature);
+      const temps = forecastData.map(d => d.data.instant.details.air_temperature);
       tempMin.textContent = Math.min(...temps);
       tempMax.textContent = Math.max(...temps);
     }
@@ -159,6 +172,16 @@
       const dirs = ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'];
       return dirs[Math.round(deg / 45) % 8];
     }
+
+    backgroundScroller.addEventListener("scroll", () => {
+      const scrollX = backgroundScroller.scrollLeft;
+      const width = backgroundScroller.clientWidth;
+      const newIndex = Math.round(scrollX / width);
+      if (newIndex !== currentIndex) {
+        currentIndex = newIndex;
+        updateWeatherDisplay(currentIndex);
+      }
+    });
 
     fetchForecast();
   </script>
