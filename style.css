@@ -1,191 +1,141 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>우리가족 날씨앱</title>  
-  <link rel="stylesheet" href="https://leesw931.github.io/getWeatherV2/style.css">
-</head>
-<body>
-  <script>
-    const password = '0831';
-    if (password !== "0831") {
-      document.body.innerHTML = "<h2 style='text-align:center; color:red;'>잘못된 접근입니다.</h2>";
-      throw new Error("접근 차단");
-    }
-  </script>
+/* 기본 설정 */
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  color: white;
+  background-color: #000;
+  height: 100%;
+}
 
-  <div class="container">
-    <header>
-      <h1 id="location">🌤 우리가족 날씨</h1>
-      <select id="regionSelect">
-        <option value="34.4465,126.6706">만수리</option>
-        <option value="37.3225,127.0947">수지</option>
-        <option value="37.6408,126.6444">마산동</option>
-      </select>
-    </header>
+.container {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
 
-    <main id="nowSection" class="weather-display">
-      <div id="backgroundScroller"></div>
-      <div class="weather-info">
-        <div class="top">
-          <div>
-            <div id="currentTime" class="time-text">Today 00:00</div>
-            <div id="temperature" class="temp">--°</div>
-            <div id="feelsLike" class="feels">Feels like --°</div>
-          </div>
-          <div class="wind-info">
-            <div id="windSpeed">--</div>
-            <div id="windDirection">Wind dir</div>
-          </div>
-        </div>
+header {
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 10;
+  position: relative;
+}
 
-        <div id="summaryText" class="summary">날씨 설명 문구</div>
+#regionSelect {
+  font-size: 1rem;
+  padding: 0.4rem;
+  border-radius: 6px;
+}
 
-        <div class="bottom">
-          <div class="minmax">
-            <div>↑ <span id="tempMax">--</span>° ↓ <span id="tempMin">--</span>°</div>
-          </div>
-          <div class="precip">
-            <div>No precipitation</div>
-            <div><span id="precipAmount">0</span> mm</div>
-          </div>
-        </div>
-      </div>
-    </main>
+.weather-display {
+  position: relative;
+  height: calc(100vh - 150px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
 
-    <div class="tab-buttons">
-      <button id="nowTab" class="active">Now</button>
-      <button id="days10Tab">10 Days</button>
-    </div>
+.weather-background {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  filter: brightness(0.6);
+}
 
-    <section id="days10Section" style="display: none;">
-      <div id="days10Container"></div>
-    </section>
-  </div>
+.weather-info {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
 
-  <script>
-    const regionSelect = document.getElementById("regionSelect");
-    const nowTab = document.getElementById("nowTab");
-    const days10Tab = document.getElementById("days10Tab");
-    const nowSection = document.getElementById("nowSection");
-    const days10Section = document.getElementById("days10Section");
+#backgroundScroller {
+  display: flex;
+  overflow-x: scroll;
+  scroll-snap-type: x mandatory;
+  width: 100%;
+  height: 100vh;
+  position: absolute;
+  top: 0; left: 0;
+}
 
-    const backgroundScroller = document.getElementById("backgroundScroller");
-    const currentTime = document.getElementById("currentTime");
-    const temperature = document.getElementById("temperature");
-    const feelsLike = document.getElementById("feelsLike");
-    const windSpeed = document.getElementById("windSpeed");
-    const windDirection = document.getElementById("windDirection");
-    const summaryText = document.getElementById("summaryText");
-    const tempMin = document.getElementById("tempMin");
-    const tempMax = document.getElementById("tempMax");
-    const precipAmount = document.getElementById("precipAmount");
+.background-slide {
+  min-width: 100%;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
 
-    const summaryMap = {
-      clearsky_day: "Clear and sunny",
-      clearsky_night: "Clear night",
-      partlycloudy_day: "Partly cloudy",
-      partlycloudy_night: "Partly cloudy night",
-      cloudy: "Cloudy",
-      lightrain: "Light rain",
-      rain: "Rain",
-      heavyrain: "Heavy rain",
-      lightsnow: "Light snow",
-      snow: "Snow",
-      fog: "Foggy"
-    };
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-    let currentIndex = 0;
-    let forecastData = [];
+.temp {
+  font-size: 5rem;
+  font-weight: bold;
+}
 
-    nowTab.addEventListener("click", () => {
-      nowTab.classList.add("active");
-      days10Tab.classList.remove("active");
-      nowSection.style.display = "block";
-      days10Section.style.display = "none";
-    });
+.feels {
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
 
-    days10Tab.addEventListener("click", () => {
-      days10Tab.classList.add("active");
-      nowTab.classList.remove("active");
-      days10Section.style.display = "block";
-      nowSection.style.display = "none";
-    });
+.wind-info {
+  text-align: right;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
 
-    regionSelect.addEventListener("change", fetchForecast);
+.summary {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
 
-    async function fetchForecast() {
-      const [lat, lon] = regionSelect.value.split(",");
-      const url = `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat}&lon=${lon}`;
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 1rem;
+  font-size: 1rem;
+}
 
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        forecastData = data.properties.timeseries.slice(0, 6);
-        renderBackgroundSlides(forecastData);
-        updateWeatherDisplay(0);
-      } catch (err) {
-        alert("날씨 정보를 불러오지 못했습니다: " + err.message);
-        console.error(err);
-      }
-    }
+.minmax, .precip {
+  flex: 1;
+}
 
-    function renderBackgroundSlides(timeseries) {
-      backgroundScroller.innerHTML = "";
-      timeseries.forEach(entry => {
-        const symbol = entry.data.next_1_hours?.summary?.symbol_code || "clearsky_day";
-        const bg = document.createElement("div");
-        bg.className = "background-slide";
-        //bg.style.backgroundImage = `url('./assets/backgrounds/${symbol}.jpg')`;
-        console.log('symbol ::::::', symbol);
-        bg.style.backgroundImage = `url('https://leesw931.github.io/getWeatherV2/assets/backgrounds/${symbol}.jpg')`;
-        backgroundScroller.appendChild(bg);
-      });
-    }
+.tab-buttons {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 1rem 0;
+  z-index: 10;
+}
 
-    function updateWeatherDisplay(index) {
-      if (!forecastData[index]) return;
-      const entry = forecastData[index];
-      const time = new Date(entry.time);
-      const hour = time.getHours().toString().padStart(2, '0');
-      const minute = time.getMinutes().toString().padStart(2, '0');
-      currentTime.textContent = `Today ${hour}:${minute}`;
+.tab-buttons button {
+  background: none;
+  color: white;
+  border: none;
+  font-size: 1.1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
 
-      const temp = entry.data.instant.details.air_temperature;
-      temperature.textContent = `${Math.round(temp)}°`;
-      feelsLike.textContent = `Feels like ${Math.round(temp)}°`;
-
-      windSpeed.textContent = `${entry.data.instant.details.wind_speed} m/s`;
-      windDirection.textContent = `from ${windDirectionText(entry.data.instant.details.wind_from_direction)}`;
-
-      const symbol = entry.data.next_1_hours?.summary?.symbol_code || "clearsky_day";
-      summaryText.textContent = summaryMap[symbol] || symbol;
-
-      const precip = entry.data.next_1_hours?.details?.precipitation_amount || 0;
-      precipAmount.textContent = precip;
-
-      const temps = forecastData.map(d => d.data.instant.details.air_temperature);
-      tempMin.textContent = Math.min(...temps);
-      tempMax.textContent = Math.max(...temps);
-    }
-
-    function windDirectionText(deg) {
-      const dirs = ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'];
-      return dirs[Math.round(deg / 45) % 8];
-    }
-
-    backgroundScroller.addEventListener("scroll", () => {
-      const scrollX = backgroundScroller.scrollLeft;
-      const width = backgroundScroller.clientWidth;
-      const newIndex = Math.round(scrollX / width);
-      if (newIndex !== currentIndex) {
-        currentIndex = newIndex;
-        updateWeatherDisplay(currentIndex);
-      }
-    });
-
-    fetchForecast();
-  </script>
-</body>
-</html>
+.tab-buttons button.active {
+  background: #007bff;
+}
