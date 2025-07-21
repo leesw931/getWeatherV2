@@ -50,7 +50,7 @@ async function fetchForecast() {
   try {
     const [forecastRes, sunriseRes] = await Promise.all([
       fetch(forecastUrl),
-      fetch(sunriseUrl)
+      //fetch(sunriseUrl)
     ]);
     const forecastJson = await forecastRes.json();
     const sunriseJson = await sunriseRes.json();
