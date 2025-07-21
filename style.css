@@ -2,8 +2,9 @@ body, html {
   margin: 0;
   padding: 0;
   font-family: 'Arial', sans-serif;
-  overflow-x: hidden;
-  height: 100%;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
 }
 
 .container {
@@ -39,35 +40,39 @@ header h1 {
   display: flex;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  width: 100%;
+  scroll-behavior: smooth;
+  width: 100vw;
   height: 100vh;
   position: absolute;
   top: 0;
   left: 0;
   z-index: 0;
-  -webkit-overflow-scrolling: touch; /* mobile support */
-  scrollbar-width: none; /* Firefox */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
 
 #backgroundScroller::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+  display: none;
 }
 
 .background-slide {
-  min-width: 100%;
+  min-width: 100vw;
   height: 100vh;
   background-size: cover;
   background-position: center;
   scroll-snap-align: start;
   flex-shrink: 0;
+  transition: background-image 1s ease-in-out;
 }
 
 .weather-info {
   position: relative;
   z-index: 1;
   color: white;
-  padding: 100px 20px 20px 20px; /* 👈 header 영역 피해서 아래로 */
+  padding: 100px 20px 20px 20px;
   text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+  height: calc(100vh - 100px);
+  overflow: auto;
 }
 
 .weather-info .top,
