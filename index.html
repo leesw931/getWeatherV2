@@ -10,7 +10,8 @@
 <body>
   <script>
     const password = prompt("접속 비밀번호를 입력하세요");
-    if (password !== "우리집비번") {
+    password = '0831';
+    if (password !== "0831") {
       document.body.innerHTML = "<h2 style='text-align:center; color:red;'>잘못된 접근입니다.</h2>";
       throw new Error("접근 차단");
     }
