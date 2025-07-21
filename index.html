@@ -9,8 +9,7 @@
 </head>
 <body>
   <script>
-    const password = prompt("접속 비밀번호를 입력하세요");
-    password = '0831';
+    const password = '0831';
     if (password !== "0831") {
       document.body.innerHTML = "<h2 style='text-align:center; color:red;'>잘못된 접근입니다.</h2>";
       throw new Error("접근 차단");
@@ -24,7 +23,6 @@
         <option value="34.4465,126.6706">만수리</option>
         <option value="37.3225,127.0947">수지</option>
         <option value="37.6408,126.6444">마산동</option>
-        
       </select>
     </header>
 
@@ -78,15 +76,11 @@
       const url = `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat}&lon=${lon}`;
 
       try {
-        const res = await fetch(url, {
-          headers: {
-            "User-Agent": "my-family-weather/1.0 ta-da@example.com"
-          }
-        });
+        const res = await fetch(url); // ✅ User-Agent 제거함
         const data = await res.json();
         renderForecast(data.properties.timeseries);
       } catch (err) {
-        alert("날씨 정보를 불러오지 못했습니다.");
+        alert("날씨 정보를 불러오지 못했습니다: " + err.message);
         console.error(err);
       }
     }
