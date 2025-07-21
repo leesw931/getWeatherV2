@@ -18,7 +18,11 @@ const summaryMap = {
   partlycloudy_night: "부분 흐림",
   cloudy: "흐림",
   rain: "비",
-  lightrain: "이슬비",
+  lightrain: "약한비",
+  rainshowers_day: "낮동안 소나기",
+  lightrainshowers_day: "낮동안 가벼운 소나기",
+  heavyrainshowers_day: "낮 동안 강한 소나기",
+  lightrainshowers_night: "밤 동안 가벼운 소나기",
   heavyrain: "호우",
   snow: "눈",
   fog: "안개"
