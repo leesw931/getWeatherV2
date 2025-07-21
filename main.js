@@ -15,6 +15,7 @@ const summaryMap = {
   clearsky_day: "맑음",
   clearsky_night: "맑은 밤",
   partlycloudy_day: "부분 흐림",
+  partlycloudy_night: "부분 흐림",
   cloudy: "흐림",
   rain: "비",
   lightrain: "이슬비",
