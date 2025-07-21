@@ -138,7 +138,7 @@
         const bg = document.createElement("div");
         bg.className = "background-slide";
         //bg.style.backgroundImage = `url('./assets/backgrounds/${symbol}.jpg')`;
-        console.log('symbol ::::::', symbol'');
+        console.log('symbol ::::::', symbol);
         bg.style.backgroundImage = `url('https://leesw931.github.io/getWeatherV2/assets/backgrounds/${symbol}.jpg')`;
         backgroundScroller.appendChild(bg);
       });
