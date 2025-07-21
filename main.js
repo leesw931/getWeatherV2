@@ -44,12 +44,10 @@ async function fetchForecast() {
     const res = await fetch(url);
     const data = await res.json();
 
-    // 오늘 날짜 기준 24시까지 필터링
-    const now = new Date();
-    const endOfToday = new Date(now);
-    endOfToday.setHours(23, 59, 59, 999);
-
-    forecastData = data.properties.timeseries.filter(item => new Date(item.time) <= endOfToday);
+    forecastData = data.properties.timeseries.map(item => ({
+      ...item,
+      localTime: new Date(item.time)
+    }));
 
     renderSlides(forecastData);
     updateWeather(0);
@@ -72,9 +70,19 @@ function renderSlides(data) {
 
 function updateWeather(index) {
   const item = forecastData[index];
-  const time = new Date(item.time);
-  const hour = time.getHours().toString().padStart(2, "0");
-  currentTime.textContent = `${hour}:00`;
+  const time = item.localTime;
+  const now = new Date();
+
+  let timeLabel = "";
+  if (time.toDateString() === now.toDateString()) {
+    timeLabel = `오늘 ${time.getHours().toString().padStart(2, "0")}:00`;
+  } else {
+    const month = time.getMonth() + 1;
+    const date = time.getDate();
+    const hour = time.getHours().toString().padStart(2, "0");
+    timeLabel = `${month}월 ${date}일 ${hour}:00`;
+  }
+  currentTime.textContent = timeLabel;
 
   const temp = Math.round(item.data.instant.details.air_temperature);
   temperature.textContent = `${temp}°`;
