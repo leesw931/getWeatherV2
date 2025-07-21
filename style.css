@@ -150,3 +150,10 @@ header {
 .tab-buttons button.active {
   background: #007bff;
 }
+
+#sunriseInfo {
+  font-size: 14px;
+  font-weight: bold;
+  color: #ffd700; /* 황금색 느낌 */
+  margin-bottom: 4px;
+}
