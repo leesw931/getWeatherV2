@@ -45,7 +45,7 @@ async function fetchForecast() {
   const [lat, lon] = regionSelect.value.split(",");
   const forecastUrl = `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat}&lon=${lon}`;
   const today = new Date().toISOString().split("T")[0];
-  const sunriseUrl = `https://api.met.no/weatherapi/sunrise/2.0/.json?lat=${lat}&lon=${lon}&date=${today}&offset=+09:00`;
+  const sunriseUrl = `https://api.met.no/weatherapi/sunrise/2.0.json?lat=${lat}&lon=${lon}&date=${today}&offset=+09:00`;
 
   try {
     const [forecastRes, sunriseRes] = await Promise.all([
