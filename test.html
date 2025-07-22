@@ -2,87 +2,96 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>날씨 배경 전환 샘플</title>
+  <title>시간별 배경 전환 샘플</title>
   <style>
     body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 1s ease;
-      background-size: cover;
-      background-position: center;
       font-family: sans-serif;
-      overflow: hidden;
-    }
-    .overlay {
-      background-color: rgba(0, 0, 0, 0.4);
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
-    .time-display {
-      position: relative;
+      text-align: center;
+      padding: 2rem;
+      transition: background 1s ease-in-out;
       color: white;
+    }
+    .swipe-area {
+      margin-top: 3rem;
+      padding: 3rem;
+      border: 2px dashed #ccc;
+      border-radius: 10px;
+      cursor: grab;
+      user-select: none;
+    }
+    #hourText {
+      margin-top: 2rem;
       font-size: 2rem;
-      z-index: 1;
     }
   </style>
 </head>
 <body>
-  <div class="overlay"></div>
-  <div class="time-display" id="timeText">00:00</div>
+  <h1>스와이프로 시간별 배경 전환</h1>
+  <div class="swipe-area" id="swipeArea">좌우로 스와이프 해보세요!</div>
+  <div id="hourText"></div>
 
   <script>
-    const backgroundMap = [
-      { hour: 0,   sky: '맑음', img: 'linear-gradient(to top, #000428, #004e92)' },  // 밤
-      { hour: 6,   sky: '맑음', img: 'linear-gradient(to top, #fddb92, #d1fdff)' },  // 아침
-      { hour: 12,  sky: '맑음', img: 'linear-gradient(to top, #a1c4fd, #c2e9fb)' },  // 낮
-      { hour: 17,  sky: '흐림', img: 'linear-gradient(to top, #bdc3c7, #2c3e50)' },  // 흐림
-      { hour: 20,  sky: '맑음', img: 'linear-gradient(to top, #373b44, #4286f4)' },  // 저녁
-    ];
+    let currentHour = new Date().getHours();
 
-    let currentHour = 0;
-    const timeText = document.getElementById('timeText');
+    function getBackgroundColorByHour(hour) {
+      if (hour >= 5 && hour < 7) return '#fff4e6';       // 이른 아침
+      if (hour >= 7 && hour < 10) return '#ffefcc';      // 아침
+      if (hour >= 10 && hour < 12) return '#ffe8a1';     // 오전
+      if (hour >= 12 && hour < 15) return '#ffdd75';     // 정오
+      if (hour >= 15 && hour < 17) return '#ffc94d';     // 오후
+      if (hour >= 17 && hour < 19) return '#ffb347';     // 늦은 오후
+      if (hour >= 19 && hour < 21) return '#ff944d';     // 저녁
+      if (hour >= 21 || hour < 1) return '#2c3e50';       // 밤
+      if (hour >= 1 && hour < 5) return '#1a252f';        // 심야
+      return '#ffffff';
+    }
 
-    function getBackground(hour) {
-      for (let i = backgroundMap.length - 1; i >= 0; i--) {
-        if (hour >= backgroundMap[i].hour) {
-          return backgroundMap[i].img;
-        }
+    function updateBackground(hour) {
+      const color = getBackgroundColorByHour(hour);
+      document.body.style.background = color;
+      document.getElementById('hourText').innerText = `${hour}시`;
+    }
+
+    function onSwipe(direction) {
+      if (direction === 'left') {
+        currentHour = (currentHour + 1) % 24;
+      } else if (direction === 'right') {
+        currentHour = (currentHour - 1 + 24) % 24;
       }
-      return backgroundMap[0].img;
+      updateBackground(currentHour);
     }
 
-    function updateBackground() {
-      document.body.style.background = getBackground(currentHour);
-      timeText.innerText = `${String(currentHour).padStart(2, '0')}:00`;
-    }
+    let startX = 0;
+    const swipeArea = document.getElementById('swipeArea');
 
-    let startX = null;
-
-    window.addEventListener('touchstart', (e) => {
+    swipeArea.addEventListener('touchstart', e => {
       startX = e.touches[0].clientX;
     });
 
-    window.addEventListener('touchend', (e) => {
+    swipeArea.addEventListener('touchend', e => {
       const endX = e.changedTouches[0].clientX;
-      if (startX !== null) {
-        if (endX - startX > 50) {
-          currentHour = Math.max(0, currentHour - 1); // swipe right
-        } else if (startX - endX > 50) {
-          currentHour = Math.min(23, currentHour + 1); // swipe left
-        }
-        updateBackground();
-        startX = null;
+      if (endX - startX > 50) {
+        onSwipe('right');
+      } else if (startX - endX > 50) {
+        onSwipe('left');
       }
     });
 
-    updateBackground();
+    // 데스크탑 마우스용 이벤트
+    swipeArea.addEventListener('mousedown', e => {
+      startX = e.clientX;
+    });
+    swipeArea.addEventListener('mouseup', e => {
+      const endX = e.clientX;
+      if (endX - startX > 50) {
+        onSwipe('right');
+      } else if (startX - endX > 50) {
+        onSwipe('left');
+      }
+    });
+
+    // 초기 렌더링
+    updateBackground(currentHour);
   </script>
 </body>
 </html>
