@@ -17,7 +17,7 @@
       font-size: 2rem;
       font-family: sans-serif;
       flex-direction: column;
-      touch-action: pan-y; /* 💡 스와이프 제한 해제 */
+      touch-action: pan-y;
     }
 
     .icon {
@@ -35,33 +35,49 @@
     const body = document.body;
     const icon = document.getElementById('weatherIcon');
     const timeText = document.getElementById('timeText');
+
     let hour = 12;
 
-    function updateTheme(hour) {
-      timeText.textContent = `${hour}시`;
-
-      if (hour >= 6 && hour <= 11) {
-        // 흐림 (오전)
-        body.style.background = 'linear-gradient(to bottom, #a3a3a3, #d0d0d0)';
-        icon.textContent = '🌥️';
-      } else if (hour >= 12 && hour <= 18) {
-        // 맑음 (오후)
-        body.style.background = 'linear-gradient(to bottom, #87CEFA, #fdf6e3)';
-        icon.textContent = '☀️';
-      } else {
-        // 밤
-        body.style.background = 'linear-gradient(to bottom, #0f2027, #203a43, #2c5364)';
-        icon.textContent = '🌙';
-      }
-    }
+    const hourThemes = [
+      { bg: '#0c1445', icon: '🌙' }, // 0
+      { bg: '#0c1547', icon: '🌙' },
+      { bg: '#0c1649', icon: '🌙' },
+      { bg: '#131a52', icon: '🌙' },
+      { bg: '#1c225f', icon: '🌙' },
+      { bg: '#28306d', icon: '🌙' },
+      { bg: '#38417e', icon: '🌥️' }, // 6
+      { bg: '#4c5690', icon: '🌥️' },
+      { bg: '#6671a4', icon: '🌥️' },
+      { bg: '#8390b8', icon: '🌥️' },
+      { bg: '#a5b0cc', icon: '🌥️' },
+      { bg: '#cbd2e0', icon: '🌥️' },
+      { bg: '#e3e9f0', icon: '☀️' }, // 12
+      { bg: '#d4e4f0', icon: '☀️' },
+      { bg: '#c1d5e8', icon: '☀️' },
+      { bg: '#a8c4dd', icon: '☀️' },
+      { bg: '#8bb1d0', icon: '☀️' },
+      { bg: '#709dc1', icon: '☀️' },
+      { bg: '#5a89ac', icon: '☀️' }, // 18
+      { bg: '#476e91', icon: '🌥️' },
+      { bg: '#365577', icon: '🌥️' },
+      { bg: '#263e5e', icon: '🌥️' },
+      { bg: '#192949', icon: '🌙' },
+      { bg: '#101937', icon: '🌙' }, // 23
+    ];
 
     function clampHour(val) {
       return Math.max(0, Math.min(23, val));
     }
 
+    function updateTheme(hour) {
+      const { bg, icon: weatherIcon } = hourThemes[hour];
+      body.style.background = bg;
+      icon.textContent = weatherIcon;
+      timeText.textContent = `${hour}시`;
+    }
+
     let startX = null;
 
-    // 💡 body에 직접 이벤트 적용
     body.addEventListener('touchstart', (e) => {
       startX = e.touches[0].clientX;
     });
